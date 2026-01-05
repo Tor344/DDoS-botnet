@@ -39,7 +39,14 @@ async def delete(url) -> None:
     pass
 
 
-if __name__ == '__main__':
+
+
+
+async def main():
     url = str(input("Input url sacrifice: "))
     while True:
-        asyncio.run(get(url))
+        await get(url)
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
